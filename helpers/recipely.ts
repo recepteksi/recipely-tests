@@ -59,6 +59,40 @@ export class Recipely {
     await this.signInButton.click();
   }
 
+  /**
+   * Sign in and wait until the app leaves the login surface, retrying the submit
+   * if the app surfaces a transient "Request timed out" banner. The backend is a
+   * live production target, so an occasional slow round-trip trips the client's
+   * own request timeout; re-submitting recovers without masking real auth
+   * failures (a wrong-credentials banner is NOT retried and surfaces normally).
+   */
+  async signInUntilHome(
+    email: string,
+    password: string,
+    { attempts = 3, perAttemptMs = 20_000 }: { attempts?: number; perAttemptMs?: number } = {},
+  ): Promise<void> {
+    await this.fillCredentials(email, password);
+    const timedOut = this.page.getByText(/Request timed out/i);
+    for (let attempt = 1; attempt <= attempts; attempt++) {
+      await this.signInButton.click();
+      try {
+        // Success: the login form unmounts when we navigate to /recipes.
+        await expect(this.emailInput).toHaveCount(0, { timeout: perAttemptMs });
+        return;
+      } catch {
+        // Only a transient timeout banner is retryable; anything else re-throws
+        // on the final assertion below.
+        if (attempt < attempts && (await timedOut.count()) > 0) {
+          continue;
+        }
+        throw new Error(
+          `Login did not leave the login screen after ${attempt} attempt(s); ` +
+            `last visible state still shows the email field.`,
+        );
+      }
+    }
+  }
+
   /** Open the registration screen via the "Create account" link. */
   async goToRegister(): Promise<void> {
     await this.signUpLink.click();

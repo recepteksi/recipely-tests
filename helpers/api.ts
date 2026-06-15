@@ -78,7 +78,10 @@ export class RecipelyApi {
 
   /** Encrypted POST to `${API_V1_URL}${path}`; `body` is sealed into an envelope. */
   async post(path: string, body: unknown, token?: string): Promise<ApiResult> {
-    const envelope = encryptEnvelope(body, key);
+    // The backend's decrypt-body middleware expects the envelope plaintext to be
+    // `{ data: <body> }` (mirroring the `{ data }` / `{ error }` response shape)
+    // and rejects anything else with a `missing \`data\`` validation error.
+    const envelope = encryptEnvelope({ data: body }, key);
     const res = await this.request.post(`${API_V1_URL}${path}`, {
       headers: this.headers(token ? { Authorization: `Bearer ${token}` } : undefined),
       data: envelope,

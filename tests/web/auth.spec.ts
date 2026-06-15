@@ -29,9 +29,11 @@ test.describe('Web · authentication', () => {
 
   test('valid credentials sign in and leave the login screen', async ({ page }) => {
     test.skip(!HAS_TEST_ACCOUNT, 'Set RECIPELY_TEST_EMAIL / RECIPELY_TEST_PASSWORD to run.');
-    await app.signIn(TEST_EMAIL, TEST_PASSWORD);
+    // Retries the submit on a transient production "Request timed out" banner so
+    // the assertion below reflects auth, not a one-off slow round-trip.
+    await app.signInUntilHome(TEST_EMAIL, TEST_PASSWORD);
     // On success the screen redirects to /recipes; the email field disappears.
-    await expect(app.emailInput).toHaveCount(0, { timeout: 20_000 });
+    await expect(app.emailInput).toHaveCount(0);
     await expect(page).toHaveURL(/recipes/i, { timeout: 20_000 });
   });
 });

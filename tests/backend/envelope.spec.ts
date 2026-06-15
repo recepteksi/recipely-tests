@@ -43,15 +43,15 @@ test.describe('Backend · AES-256-GCM envelope', () => {
     expect(result.status).toBeLessThan(500);
 
     if (HAS_REAL_AES_KEY) {
-      // With the real key the backend accepts our envelope and replies with a
-      // structured rejection for bad credentials.
-      expect([400, 401, 403, 422]).toContain(result.status);
-      const decrypted = result.decrypted as { error?: unknown } | undefined;
+      // With the real key the backend opens our `{ data }`-wrapped envelope and
+      // replies with a structured rejection for bad credentials. A 401 with an
+      // `unauthorized` error code (not a 400 `missing data` validation error)
+      // proves the request body was both decryptable AND correctly shaped.
+      expect(result.status).toBe(401);
       expect(result.decryptError, 'response envelope should decrypt with the real key')
         .toBeUndefined();
-      if (decrypted && typeof decrypted === 'object') {
-        expect('error' in decrypted || 'data' in decrypted).toBe(true);
-      }
+      const decrypted = result.decrypted as { error?: { code?: string } } | undefined;
+      expect(decrypted?.error?.code).toBe('unauthorized');
     } else {
       // With the dev-default key the backend's decrypt-body middleware rejects
       // our request (it can't open our envelope). That still proves the
