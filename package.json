@@ -1,0 +1,36 @@
+{
+  "name": "recipely-tests",
+  "version": "1.0.0",
+  "description": "End-to-end automation tests for Recipely — backend (api.recipely.net), web frontend, and mobile (Playwright device emulation + Maestro native).",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "test": "playwright test",
+    "test:backend": "playwright test --project=backend",
+    "test:web": "playwright test --project=desktop-chromium --project=desktop-firefox --project=desktop-webkit",
+    "test:mobile": "playwright test --project=mobile-iphone --project=mobile-pixel --project=tablet-ipad",
+    "test:iphone": "playwright test --project=mobile-iphone",
+    "test:android": "playwright test --project=mobile-pixel",
+    "test:desktop": "playwright test --project=desktop-chromium --project=desktop-firefox --project=desktop-webkit",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "report": "playwright show-report",
+    "typecheck": "tsc --noEmit",
+    "ios:sim": "node scripts/ios-simulator-smoke.mts",
+    "maestro:ios": "maestro test maestro/flows --include-tags=ios",
+    "maestro:android": "maestro test maestro/flows --include-tags=android",
+    "maestro": "maestro test maestro/flows"
+  },
+  "keywords": [
+    "recipely",
+    "playwright",
+    "maestro",
+    "e2e"
+  ],
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.60.0",
+    "@types/node": "^25.9.3",
+    "typescript": "^6.0.3"
+  }
+}

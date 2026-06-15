@@ -1,0 +1,30 @@
+# Native navigation between the auth screens (login → register → forgot).
+appId: ${APP_ID}
+env:
+  APP_ID: com.recipely.app
+tags:
+  - ios
+  - android
+---
+- launchApp:
+    clearState: true
+- assertVisible: "Sign in to view your recipes."
+
+# Login → Register
+- tapOn: "Create account"
+- assertVisible: "Join Recipely to save and share recipes."
+- assertVisible: "Already have an account?"
+
+# Register → back to Login
+- tapOn:
+    text: "Sign in"
+    index: 1
+- assertVisible: "Sign in to view your recipes."
+
+# Login → Forgot password
+- tapOn: "Forgot password?"
+- assertVisible:
+    text: ".*send a reset link.*"
+- assertVisible: "Back to sign in"
+- tapOn: "Back to sign in"
+- assertVisible: "Sign in to view your recipes."

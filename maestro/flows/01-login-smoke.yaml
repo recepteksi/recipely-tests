@@ -1,0 +1,25 @@
+# Native smoke test — the login screen renders on a real iOS Simulator /
+# Android Emulator. Runs against an installed Recipely build (dev or prod).
+#
+# appId is overridable so you can point at the dev client (com.recipely.app.dev):
+#   APP_ID=com.recipely.app.dev maestro test maestro/flows/01-login-smoke.yaml
+appId: ${APP_ID}
+env:
+  APP_ID: com.recipely.app
+tags:
+  - ios
+  - android
+  - smoke
+---
+- launchApp:
+    clearState: true
+- assertVisible: "Recipely"
+- assertVisible: "Sign in to view your recipes."
+- assertVisible:
+    text: "Email"
+- assertVisible:
+    text: "Password"
+- assertVisible: "Sign in"
+- assertVisible: "Create account"
+- assertVisible: "Continue with Google"
+- takeScreenshot: artifacts/native-login

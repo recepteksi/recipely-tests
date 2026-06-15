@@ -1,0 +1,25 @@
+# Native invalid-credentials path — exercises a real backend round-trip
+# (the installed build carries the real AES envelope key) and asserts the
+# inline error banner.
+appId: ${APP_ID}
+env:
+  APP_ID: com.recipely.app
+tags:
+  - ios
+  - android
+---
+- launchApp:
+    clearState: true
+- assertVisible: "Sign in to view your recipes."
+- tapOn:
+    text: "Email"
+- inputText: "nobody@recipely.invalid"
+- tapOn:
+    text: "Password"
+- inputText: "definitely-wrong"
+- hideKeyboard
+- tapOn: "Sign in"
+- assertVisible:
+    text: "Invalid email or password"
+    timeout: 20000
+- takeScreenshot: artifacts/native-invalid-login

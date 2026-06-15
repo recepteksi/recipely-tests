@@ -1,0 +1,35 @@
+# Native happy path — real sign-in, then assert the recipes feed loads.
+# Requires credentials; provide them at run time:
+#   maestro test maestro/flows/04-login-and-browse.yaml \
+#     -e MAESTRO_EMAIL=you@example.com -e MAESTRO_PASSWORD=secret
+appId: ${APP_ID}
+env:
+  APP_ID: com.recipely.app
+  MAESTRO_EMAIL: ""
+  MAESTRO_PASSWORD: ""
+tags:
+  - ios
+  - android
+  - authed
+---
+- runFlow:
+    when:
+      true: ${MAESTRO_EMAIL == ""}
+    commands:
+      - evalScript: ${output.skip = "No MAESTRO_EMAIL provided — skipping authed flow."}
+- launchApp:
+    clearState: true
+- assertVisible: "Sign in to view your recipes."
+- tapOn:
+    text: "Email"
+- inputText: ${MAESTRO_EMAIL}
+- tapOn:
+    text: "Password"
+- inputText: ${MAESTRO_PASSWORD}
+- hideKeyboard
+- tapOn: "Sign in"
+# After sign-in the app redirects to the recipes feed.
+- assertVisible:
+    text: "Recipes"
+    timeout: 20000
+- takeScreenshot: artifacts/native-recipes-feed
