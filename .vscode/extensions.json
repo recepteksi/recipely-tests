@@ -1,0 +1,6 @@
+{
+  // Recommended: the official Playwright extension adds a Test Explorer with
+  // per-test ▶ / debug buttons in the editor gutter — the easiest way to run a
+  // single test. The launch.json / tasks.json configs work without it too.
+  "recommendations": ["ms-playwright.playwright"]
+}

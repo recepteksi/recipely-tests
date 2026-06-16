@@ -1,0 +1,97 @@
+{
+  // Non-debug quick runs: open the Command Palette → "Tasks: Run Task" and pick
+  // one (or bind a key). These mirror the npm scripts in package.json and stream
+  // output to a dedicated terminal panel. Use launch.json (F5) when you want to
+  // set breakpoints / step through a test instead.
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "test: all",
+      "type": "npm",
+      "script": "test",
+      "group": { "kind": "test", "isDefault": true },
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
+    },
+    {
+      "label": "test: backend",
+      "type": "npm",
+      "script": "test:backend",
+      "group": "test",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
+    },
+    {
+      "label": "test: web (desktop)",
+      "type": "npm",
+      "script": "test:web",
+      "group": "test",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
+    },
+    {
+      "label": "test: mobile emulation",
+      "type": "npm",
+      "script": "test:mobile",
+      "group": "test",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
+    },
+    {
+      "label": "test: iPhone",
+      "type": "npm",
+      "script": "test:iphone",
+      "group": "test",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
+    },
+    {
+      "label": "test: Android (Pixel)",
+      "type": "npm",
+      "script": "test:android",
+      "group": "test",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
+    },
+    {
+      "label": "test: headed",
+      "type": "npm",
+      "script": "test:headed",
+      "group": "test",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
+    },
+    {
+      "label": "test: UI mode",
+      "type": "npm",
+      "script": "test:ui",
+      "group": "test",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
+    },
+    {
+      "label": "report: open HTML",
+      "type": "npm",
+      "script": "report",
+      "group": "test",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "typecheck",
+      "type": "npm",
+      "script": "typecheck",
+      "group": "build",
+      "problemMatcher": ["$tsc"],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
+    },
+    {
+      "label": "maestro: native (all)",
+      "type": "npm",
+      "script": "maestro",
+      "group": "test",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
+    }
+  ]
+}
