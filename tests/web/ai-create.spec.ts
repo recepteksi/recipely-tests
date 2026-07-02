@@ -56,9 +56,14 @@ test.describe('Web · AI recipe creation (real model)', () => {
     let createdId: string | null = null;
     page.on('response', (res) => {
       const req = res.request();
-      // Exact match: POST /recipes only — /recipes/generate also returns an id,
-      // but that one is a NOT-persisted preview id, not the published recipe.
-      if (req.method() !== 'POST' || res.url() !== `${API_V1_URL}${RECIPES_PATH}`) return;
+      // The app publishes via multipart POST /recipes/with-media (bare
+      // /recipes also counts, defensively). NOT /recipes/generate — that one
+      // returns a not-persisted preview id, not the published recipe.
+      const url = res.url();
+      const isCreate =
+        url === `${API_V1_URL}${RECIPES_PATH}` ||
+        url === `${API_V1_URL}${RECIPES_PATH}/with-media`;
+      if (req.method() !== 'POST' || !isCreate) return;
       if (res.status() >= 300) return;
       void res
         .json()
