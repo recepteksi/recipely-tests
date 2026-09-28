@@ -71,9 +71,64 @@ export const TEST_PASSWORD: string = process.env.RECIPELY_TEST_PASSWORD ?? '';
 export const HAS_TEST_ACCOUNT: boolean =
   TEST_EMAIL.length > 0 && TEST_PASSWORD.length > 0;
 
-// Backend route paths mirrored from infrastructure/constants/api.ts.
+// ---------------------------------------------------------------------------
+// Backend route paths — mirrored 1:1 from the mobile app's
+// infrastructure/constants/api.ts and the backend's presentation/routes/*.
+// Every path below is RELATIVE to API_V1_URL (the encrypted /api/v1 surface),
+// unless noted otherwise. Keeping them here lets a single spec drive both the
+// "direct" and "mobile" backend projects without duplicating string literals.
+// ---------------------------------------------------------------------------
+
+// Auth (public — no bearer token required)
 export const AUTH_LOGIN_PATH = '/auth/login';
 export const AUTH_REGISTER_PATH = '/auth/register';
+export const AUTH_REGISTER_VERIFY_PATH = '/auth/register/verify';
+export const AUTH_REGISTER_RESEND_PATH = '/auth/register/resend';
+export const AUTH_SOCIAL_PATH = '/auth/social';
 export const AUTH_FORGOT_PASSWORD_PATH = '/auth/forgot-password';
+export const AUTH_RESET_PASSWORD_PATH = '/auth/reset-password';
+
+// Taxonomy catalog (auth-gated)
 export const RECIPE_CUISINES_PATH = '/recipes/cuisines';
 export const RECIPE_CATEGORIES_PATH = '/recipes/categories';
+
+// Recipes (auth-gated)
+export const RECIPES_PATH = '/recipes';
+export const recipePath = (id: string): string => `/recipes/${id}`;
+export const recipeViewPath = (id: string): string => `/recipes/${id}/view`;
+export const recipeFavoritePath = (id: string): string => `/recipes/${id}/favorite`;
+export const recipeLikePath = (id: string): string => `/recipes/${id}/like`;
+export const recipeNutritionPath = (id: string): string => `/recipes/${id}/nutrition`;
+export const recipeCommentsPath = (id: string): string => `/recipes/${id}/comments`;
+export const recipeCommentPath = (id: string, commentId: string): string =>
+  `/recipes/${id}/comments/${commentId}`;
+export const recipeCommentLikePath = (id: string, commentId: string): string =>
+  `/recipes/${id}/comments/${commentId}/like`;
+
+// AI / expensive endpoints (auth-gated, rate-limited) — contract-tested only,
+// never actually invoked against the live Gemini/Whisper backend.
+export const RECIPES_GENERATE_PATH = '/recipes/generate';
+export const RECIPES_IMPORT_PATH = '/recipes/import';
+export const RECIPES_REFINE_PATH = '/recipes/refine';
+
+// Drafts (auth-gated)
+export const DRAFTS_PATH = '/recipes/drafts';
+export const DRAFTS_LATEST_PATH = '/recipes/drafts/latest';
+export const draftPath = (id: string): string => `/recipes/drafts/${id}`;
+
+// Me (auth-gated)
+export const ME_PATH = '/me';
+export const ME_PROFILE_PATH = '/me/profile';
+export const ME_RECIPES_PATH = '/me/recipes';
+export const ME_FAVORITES_PATH = '/me/favorites';
+export const ME_NOTIFICATIONS_PATH = '/me/notifications';
+export const ME_NOTIFICATIONS_READ_ALL_PATH = '/me/notifications/read-all';
+export const ME_DEVICE_TOKEN_PATH = '/me/device-token';
+
+// Users (auth-gated)
+export const userPath = (id: string): string => `/users/${id}`;
+export const userRecipesPath = (id: string): string => `/users/${id}/recipes`;
+export const userFollowPath = (id: string): string => `/users/${id}/follow`;
+
+/** Unversioned readiness probe (plain JSON, outside /api/v1). */
+export const READY_URL: string = `${API_URL}/health/ready`;
