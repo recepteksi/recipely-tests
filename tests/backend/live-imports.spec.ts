@@ -70,10 +70,19 @@ test.describe('Live · imports from every source', () => {
         expect(groups.join(' ')).toMatch(/şerbet/i);
       }
 
-      const inbox = dataOf(await api.get('/me/notifications', session.token)).items as { type: string; draftId: string | null; message: string | null }[];
+      const inbox = dataOf(await api.get('/me/notifications', session.token)).items as {
+        type: string;
+        draftId: string | null;
+        message: string | null;
+        sourcePlatform?: string | null;
+        sourceHandle?: string | null;
+      }[];
       const row = inbox.find((n) => n.draftId === job.draftId);
       expect(row?.type).toBe('import_done');
       expect(row?.message).toBe(snapshot.name);
+      // The inbox row names the same source the push did; without it the app drew Instagram on every import (backend #360).
+      expect(row?.sourcePlatform).toBe(source.platform);
+      expect(row?.sourceHandle).toBe(source.handle);
     });
   }
 
