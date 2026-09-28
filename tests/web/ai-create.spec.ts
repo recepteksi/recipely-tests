@@ -25,11 +25,10 @@ import {
  *
  * Flow under test (the unified /create-recipe screen):
  *   prompt → generate (real model) → preview appears with content
- *   → publish WITHOUT a photo → blocked with the "add at least one photo" note
- *   → add a photo (expo-image-picker web file chooser) → publish
- *   → lands on /my-recipes with the recipe visible
- *   → backend GET proves the stored recipe carries a real image URL
- *   → cleanup: the published recipe is deleted via the owner API.
+ *   → Save WITHOUT a photo → a private recipe (every recipe starts private and
+ *     a cover is optional since private saves shipped) → its detail page says
+ *     only the owner can see it → Publish → backend GET proves it is public
+ *   → cleanup: the recipe is deleted via the owner API.
  */
 const AI_E2E_ENABLED = process.env.RECIPELY_AI_E2E === '1';
 
@@ -78,7 +77,8 @@ test.describe('Web · AI recipe creation (real model)', () => {
     try {
       // ---- 1. Sign in and open the unified create flow -------------------
       const app = new Recipely(page);
-      await app.goto();
+      // Guests now land on the feed, so the sign-in form is reached by its own route.
+      await app.goto('/login');
       await app.signInUntilHome(TEST_EMAIL, TEST_PASSWORD);
       await page.goto('/create-recipe', { waitUntil: 'load' });
 
@@ -99,49 +99,30 @@ test.describe('Web · AI recipe creation (real model)', () => {
       const firstIngredient = page.getByPlaceholder('e.g. 2 tbsp olive oil').first();
       await expect(firstIngredient).not.toHaveValue('');
 
-      // ---- 3. Publishing WITHOUT a photo must be blocked -------------------
-      const saveButton = page.getByRole('button', { name: 'Save', exact: true });
-      await saveButton.click();
-      await expect(page.getByText('Please add at least one photo.')).toBeVisible();
-      await expect(page).toHaveURL(/create-recipe/);
-
-      // ---- 4. Add a photo via the photos sheet (web file chooser) ----------
-      // Any valid PNG works as the "gallery" pick; a viewport screenshot is a
-      // convenient real image with no fixture file to maintain.
-      const photoBuffer = await page.screenshot();
-      await page.getByRole('button', { name: 'Add a cover photo' }).click();
-      const chooserPromise = page.waitForEvent('filechooser', { timeout: 15_000 });
-      await page.getByRole('button', { name: 'Add photos' }).click();
-      const chooser = await chooserPromise;
-      await chooser.setFiles({
-        name: 'ai-e2e-cover.png',
-        mimeType: 'image/png',
-        buffer: photoBuffer,
-      });
-      await expect(page.getByText('Cover', { exact: true })).toBeVisible({ timeout: 15_000 });
-      await page.getByText('Done', { exact: true }).click();
-
-      // ---- 5. Publish for real ---------------------------------------------
-      await saveButton.click();
-      await expect(page).toHaveURL(/my-recipes/, { timeout: PUBLISH_TIMEOUT_MS });
+      // ---- 3. Save: a private recipe, no photo needed ----------------------
+      await page.getByRole('button', { name: 'Save', exact: true }).click();
+      await expect(page).toHaveURL(/\/recipes\/[0-9a-f-]{36}/, { timeout: PUBLISH_TIMEOUT_MS });
       await expect.poll(() => createdId, { timeout: 15_000 }).not.toBeNull();
+      await expect(page.getByText('Only you can see this recipe')).toBeVisible({ timeout: 20_000 });
+      await expect(page.getByText(generatedName, { exact: false }).first()).toBeVisible();
 
-      // The published recipe shows up in My Recipes (Created tab).
-      const createdTab = page.getByText('Created', { exact: true }).first();
-      if (await createdTab.count()) await createdTab.click();
-      await expect(page.getByText(generatedName, { exact: false }).first()).toBeVisible({
-        timeout: 20_000,
-      });
-
-      // ---- 6. Backend proof: stored recipe carries a real image URL --------
       const api = new RecipelyApi(request);
       const session = await login(request);
-      const stored = await api.get(recipePath(createdId!), session.token);
-      expect(stored.status).toBe(200);
-      const recipe = (stored.decrypted as { data?: { image?: string; name?: string } }).data;
-      expect(recipe?.image ?? '').toMatch(/^https?:\/\//);
+      const saved = (await api.get(recipePath(createdId!), session.token)).decrypted as { data?: { isPublished?: boolean; aiWritten?: boolean } };
+      expect(saved.data?.isPublished).toBe(false);
+      expect(saved.data?.aiWritten).toBe(true);
+
+      // ---- 4. Publish from the detail page ---------------------------------
+      await expect(page.getByText('AI-written recipe')).toBeVisible();
+      await page.getByRole('button', { name: /^Publish$/ }).first().click();
+      // A confirm dialog: "Publish this recipe?" — its own Publish button is the last one.
+      await expect(page.getByText('Publish this recipe?')).toBeVisible();
+      await page.getByRole('button', { name: /^Publish$/ }).last().click();
+      await expect
+        .poll(async () => ((await api.get(recipePath(createdId!))).status), { timeout: 60_000 })
+        .toBe(200);
     } finally {
-      // ---- 7. Cleanup: delete the published recipe as its owner ------------
+      // ---- 5. Cleanup: delete the recipe as its owner ----------------------
       if (createdId !== null) {
         const api = new RecipelyApi(request);
         const session = await login(request);
@@ -151,6 +132,11 @@ test.describe('Web · AI recipe creation (real model)', () => {
           description: `DELETE ${recipePath(createdId)} → ${del.status}`,
         });
       }
+      // A save that failed leaves the generated draft behind; this prompt is ours alone.
+      const api = new RecipelyApi(request);
+      const session = await login(request);
+      const drafts = ((await api.get('/recipes/drafts?pageSize=50', session.token)).decrypted as { data?: { items?: { id: string; prompt: string }[] } }).data?.items ?? [];
+      for (const d of drafts.filter((x) => x.prompt === PROMPT_TEXT)) await api.del(`/recipes/drafts/${d.id}`, session.token);
     }
   });
 });

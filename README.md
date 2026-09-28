@@ -127,6 +127,9 @@ npm run ios:sim
 | `tests/web/auth.spec.ts`              | web     | Empty-field gate, invalid-credentials error, valid login (gated). |
 | `tests/web/navigation.spec.ts`        | web     | login ↔ register ↔ forgot-password, deep links. |
 | `tests/web/responsive.spec.ts`        | web     | No horizontal overflow, form usable, CTA in-viewport on every device. |
+| `tests/backend/live-imports.spec.ts`  | backend | **Live, gated `RECIPELY_IMPORT_E2E=1`**: Instagram/TikTok/Facebook/YouTube/Pinterest/web imports (platform, handle, link, groups), 3-min refusal, photo + PDF file import. |
+| `tests/backend/live-lifecycle.spec.ts`| backend | **Live, gated `RECIPELY_LIFECYCLE_E2E=1`**: private → publish → unpublish, web-import copyright gate, photos + `mediaCount`, nutrition + focus sweeps, devices + 429. |
+| `tests/web/live-detail.spec.ts`       | web     | **Live, gated `RECIPELY_UI_E2E=1`** (desktop-chromium + mobile-iphone, tr-TR): nutrition heading + 100 g/serving switch, difficulty, photo counter/thumbs, empty-photo state, import screen, x.com refusal. |
 | `maestro/flows/*.yaml`                | native  | Login smoke, auth navigation, invalid login, authed browse. |
 
 **Non-destructive by design.** Authenticated mutation tests create their own
@@ -150,6 +153,14 @@ backend. The suite always verifies the **wire format** and the server-side
 the full login error body), set `RECIPELY_API_AES_KEY` to the real backend key;
 otherwise those assertions fall back to verifying the envelope/error contract
 and are clearly annotated.
+
+## Live runs against dev
+
+The gated specs cost worker time and model calls, so a plain `npm test` skips them. Run them against dev with
+`RECIPELY_API_URL=https://dev-api.recipely.net RECIPELY_WEB_URL=https://app-recipely-dev.web.app` plus the gate
+(`RECIPELY_AI_E2E`, `RECIPELY_IMPORT_E2E`, `RECIPELY_LIFECYCLE_E2E`, `RECIPELY_UI_E2E`). `dev.recipely.net`
+sits behind Cloudflare Access, which a test browser cannot pass. Backend live specs run on `backend-direct`
+only (`--workers=1`). Everything they create is deleted through owner APIs, except device rows (no delete endpoint).
 
 ## Reporters
 
