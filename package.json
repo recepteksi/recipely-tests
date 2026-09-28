@@ -6,7 +6,9 @@
   "type": "commonjs",
   "scripts": {
     "test": "playwright test",
-    "test:backend": "playwright test --project=backend",
+    "test:backend": "playwright test --project=backend-direct --project=backend-mobile",
+    "test:backend:direct": "playwright test --project=backend-direct",
+    "test:backend:mobile": "playwright test --project=backend-mobile",
     "test:web": "playwright test --project=desktop-chromium --project=desktop-firefox --project=desktop-webkit",
     "test:mobile": "playwright test --project=mobile-iphone --project=mobile-pixel --project=tablet-ipad",
     "test:iphone": "playwright test --project=mobile-iphone",

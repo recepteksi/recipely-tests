@@ -77,7 +77,18 @@ export class RecipelyApi {
   }
 
   /** Encrypted POST to `${API_V1_URL}${path}`; `body` is sealed into an envelope. */
-  async post(path: string, body: unknown, token?: string): Promise<ApiResult> {
+  /**
+   * @param timeoutMs Overrides the default per-request timeout. Needed for the
+   * endpoints that call a model: the assistant's typed turn takes tens of
+   * seconds on a cold provider, and the default cut it off at fifteen — a
+   * client-side timeout that reads exactly like a backend failure.
+   */
+  async post(
+    path: string,
+    body: unknown,
+    token?: string,
+    timeoutMs?: number,
+  ): Promise<ApiResult> {
     // The backend's decrypt-body middleware expects the envelope plaintext to be
     // `{ data: <body> }` (mirroring the `{ data }` / `{ error }` response shape)
     // and rejects anything else with a `missing \`data\`` validation error.
@@ -85,6 +96,39 @@ export class RecipelyApi {
     const res = await this.request.post(`${API_V1_URL}${path}`, {
       headers: this.headers(token ? { Authorization: `Bearer ${token}` } : undefined),
       data: envelope,
+      ...(timeoutMs === undefined ? {} : { timeout: timeoutMs }),
+    });
+    return interpret(res);
+  }
+
+  /** Encrypted PUT — used by draft upsert (`PUT /recipes/drafts/:id`). */
+  async put(path: string, body: unknown, token?: string): Promise<ApiResult> {
+    const envelope = encryptEnvelope({ data: body }, key);
+    const res = await this.request.put(`${API_V1_URL}${path}`, {
+      headers: this.headers(token ? { Authorization: `Bearer ${token}` } : undefined),
+      data: envelope,
+    });
+    return interpret(res);
+  }
+
+  /** Encrypted PATCH — used by profile/recipe partial updates. */
+  async patch(path: string, body: unknown, token?: string): Promise<ApiResult> {
+    const envelope = encryptEnvelope({ data: body }, key);
+    const res = await this.request.patch(`${API_V1_URL}${path}`, {
+      headers: this.headers(token ? { Authorization: `Bearer ${token}` } : undefined),
+      data: envelope,
+    });
+    return interpret(res);
+  }
+
+  /**
+   * DELETE `${API_V1_URL}${path}`. Mirrors the mobile client: DELETE carries no
+   * encrypted body (the backend's decrypt-body middleware lets GET/DELETE pass
+   * through unchanged), so none is sent.
+   */
+  async del(path: string, token?: string): Promise<ApiResult> {
+    const res = await this.request.delete(`${API_V1_URL}${path}`, {
+      headers: this.headers(token ? { Authorization: `Bearer ${token}` } : undefined),
     });
     return interpret(res);
   }
