@@ -87,6 +87,31 @@ npm run maestro:android
 npm run ios:sim
 ```
 
+## Device matrix (responsive / visual)
+
+`tests/matrix/device-matrix.spec.ts` opens every guest screen (onboarding, login,
+register, forgot password, the feed, a recipe detail, chefs, about, privacy) on 13
+device shapes (`helpers/device-matrix.ts`): iPhone SE / 15 Pro Max, Pixel 7, Galaxy
+Z Fold 5 folded (344×882) and unfolded (690×829), Surface Duo single (540×720) and
+spanned (1114×720), iPad Mini, iPad Pro 11 landscape, Galaxy Tab S4, and desktop
+1280 / 1440 / 1920 — under Chromium, WebKit and Firefox (desktop only).
+
+It fails on page-level horizontal overflow, visible content past the viewport
+edge (horizontal scrollers exempt), pointer targets under 24×24 CSS px on touch
+devices (WCAG 2.2 AA 2.5.8; inline text links exempt) and the error screen, and it
+saves a full-page screenshot per (engine, device, route) to
+`test-results/matrix/<engine>/<device>/` for visual review.
+
+```bash
+# against a local build of the app (npm run build:web in recipely, served on :8089)
+RECIPELY_PROXY_API=1 RECIPELY_WEB_URL=http://127.0.0.1:8089 npm run test:matrix
+# against the deployed site
+npm run test:matrix
+```
+
+`RECIPELY_PROXY_API=1` makes the API calls from Node and answers with the page's
+origin allowed — a local origin is not one the API's CORS accepts.
+
 ## Projects (Playwright)
 
 | Project            | Engine    | Surface                  | Stands in for            |

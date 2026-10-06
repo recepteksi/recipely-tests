@@ -16,6 +16,7 @@
     "test:desktop": "playwright test --project=desktop-chromium --project=desktop-firefox --project=desktop-webkit",
     "test:headed": "playwright test --headed",
     "test:ui": "playwright test --ui",
+    "test:matrix": "playwright test --project=matrix-chromium --project=matrix-webkit --project=matrix-firefox",
     "report": "playwright show-report",
     "typecheck": "tsc --noEmit",
     "ios:sim": "node scripts/ios-simulator-smoke.mts",
