@@ -43,6 +43,13 @@ export default defineConfig({
   },
 
   projects: [
+    // ---------- Device matrix (responsive / visual) ----------
+    // Every guest screen on every device shape (helpers/device-matrix.ts), per
+    // engine. Opt-in: `npm run test:matrix` against RECIPELY_WEB_URL.
+    { name: 'matrix-chromium', testMatch: /tests\/matrix\/.*\.spec\.ts$/, use: { browserName: 'chromium' } },
+    { name: 'matrix-webkit', testMatch: /tests\/matrix\/.*\.spec\.ts$/, use: { browserName: 'webkit' } },
+    { name: 'matrix-firefox', testMatch: /tests\/matrix\/.*\.spec\.ts$/, use: { browserName: 'firefox' } },
+
     // ---------- Backend · direct (server-to-server caller) ----------
     // The "wire" view: a plain API client with no app identity, like curl or a
     // server integration. Proves each service works for any authorized caller.
